@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "influent": "^0.5.2"
+    "influx": "^5.4.0"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.3"

@@ -18,7 +18,7 @@ class DataBuffer {
     }
 
     isEmpty() {
-        return this.alpha.length == 0
+        return this.alpha.length === 0
     }
 
     getMeanValues() {
@@ -31,13 +31,16 @@ class DataBuffer {
 }
 
 function computeMean(values) {
-    return values.reduce(function(a, b) { return a + b; })
+    return values.reduce(function (a, b) {
+        return a + b;
+    }) / values.length
 }
 
 var dataSendInterval
 var dataBuffer = new DataBuffer()
 
 const contextInput = document.getElementById("context")
+const subjectInput = document.getElementById("subject")
 const enableSwitch = document.querySelector("#enable-switch > input")
 const errorOutput = document.getElementById("error-output")
 
@@ -45,8 +48,13 @@ const influx = new Influx.InfluxDB({
     host: 'localhost',
     database: 'training',
 })
+influx.ping(1000).then(hosts => {
+    if (hosts.length === 0 || !hosts[0].online) {
+        errorOutput.innerText += "Connection to influx db failed.\n"
+    }
+})
 
-enableSwitch.onchange = function (event) {
+enableSwitch.onchange = function () {
     if (enableSwitch.checked) {
         startRecording()
     } else {
@@ -55,14 +63,21 @@ enableSwitch.onchange = function (event) {
 }
 
 function startRecording() {
-    window.clearInterval(dataSendInterval)
-    dataBuffer.clear()
-    if (!registerDeviceOrientationListener()) {
+    if (contextInput.value === "") {
+        alert("Please specify an activity before starting the recording.")
         enableSwitch.checked = false
-        errorOutput.innerText = "Browser not supported!"
+    } else if (subjectInput.value === "") {
+        alert("Please specify subject before starting the recording.")
+        enableSwitch.checked = false
     } else {
-        dataSendInterval = window.setInterval(sendData, 1000 / 20)
-        contextInput.disabled = true
+        dataBuffer.clear()
+        if (!registerDeviceOrientationListener()) {
+            enableSwitch.checked = false
+            errorOutput.innerText += "Browser not supported!\n"
+        } else {
+            dataSendInterval = window.setInterval(sendData, 1000 / 20)
+            contextInput.disabled = subjectInput.disabled = true
+        }
     }
 }
 
@@ -70,7 +85,7 @@ function stopRecording() {
     removeDeviceOrientationListener();
     window.clearInterval(dataSendInterval)
     sendData()
-    contextInput.disabled = false
+    contextInput.disabled = subjectInput.disabled = false
 }
 
 function handleDeviceOrientation(event) {
@@ -98,7 +113,8 @@ function sendData() {
             measurement: "orientation",
             fields: dataBuffer.getMeanValues(),
             tags: {
-                context: contextInput.value
+                context: contextInput.value,
+                subject: subjectInput.value
             },
             timestamp: Date.now()
         }])

@@ -10,20 +10,27 @@
 </head>
 
 <body>
-    <h1>Activity Recorder</h1>
-    <div>
-        <input id="context" placeholder="Enter an activity" type="text">
-        <div id="recording-row">
-            <label id="enable-switch" class="switch">
-                <input type="checkbox">
-                <span class="slider round"></span>
-            </label>
-            <label> Recording Enabled</label>
-        </div>
-        <div id="error-output"></div>
+<h1>Activity Recorder</h1>
+<div>
+    <div class="input-row">
+        <div>Activity: </div>
+        <input class="input-row" id="context" placeholder="Enter an activity" type="text">
     </div>
+    <div class="input-row">
+        <div>Subject: </div>
+        <input id="subject" placeholder="Enter the subject" type="text">
+    </div>
+    <div id="recording-row">
+        <label id="enable-switch" class="switch">
+            <input type="checkbox">
+            <span class="slider round"></span>
+        </label>
+        <label> Recording Enabled</label>
+    </div>
+    <div id="error-output"></div>
+</div>
 
-    <script src="script.js"> </script>
+<script src="script.js"></script>
 </body>
 
 </html>

@@ -2,3 +2,7 @@
 node_modules
 dist
 influxdb
+.idea
+.ipynb_checkpoints/
+__pycache__/
+influxdb_data

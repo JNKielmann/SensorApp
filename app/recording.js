@@ -1,57 +1,27 @@
-const Influx = require('influx');
+import {InfluxDB} from "influx";
+import {mean} from "mathjs"
+import {DataBuffer} from "./DataBuffer";
 
-class DataBuffer {
-    constructor() {
-        this.clear()
-    }
-
-    clear() {
-        this.alpha = []
-        this.beta = []
-        this.gamma = []
-    }
-
-    add(event) {
-        this.alpha.push(event.alpha)
-        this.beta.push(event.beta)
-        this.gamma.push(event.gamma)
-    }
-
-    isEmpty() {
-        return this.alpha.length === 0
-    }
-
-    getMeanValues() {
-        return {
-            alpha: computeMean(this.alpha),
-            beta: computeMean(this.beta),
-            gamma: computeMean(this.gamma)
-        }
-    }
-}
-
-function computeMean(values) {
-    return values.reduce(function (a, b) {
-        return a + b;
-    }) / values.length
-}
-
-var dataSendInterval
-var dataBuffer = new DataBuffer()
+let dataSendInterval;
+const dataBuffer = new DataBuffer();
 
 const contextInput = document.getElementById("context")
 const subjectInput = document.getElementById("subject")
 const enableSwitch = document.querySelector("#enable-switch > input")
 const errorOutput = document.getElementById("error-output")
 
-const influx = new Influx.InfluxDB({
-    host: 'localhost',
+const influx = new InfluxDB({
+    host: '192.168.178.119',
     database: 'training',
 })
 influx.ping(1000).then(hosts => {
     if (hosts.length === 0 || !hosts[0].online) {
         errorOutput.innerText += "Connection to influx db failed.\n"
+    }else {
+        console.log("Connected to influx db")
     }
+}).catch(() => {
+    errorOutput.innerText += "Connection to influx db failed.\n"
 })
 
 enableSwitch.onchange = function () {
@@ -62,6 +32,7 @@ enableSwitch.onchange = function () {
     }
 }
 
+let startRecordingTimeout;
 function startRecording() {
     if (contextInput.value === "") {
         alert("Please specify an activity before starting the recording.")
@@ -70,18 +41,21 @@ function startRecording() {
         alert("Please specify subject before starting the recording.")
         enableSwitch.checked = false
     } else {
-        dataBuffer.clear()
-        if (!registerDeviceOrientationListener()) {
-            enableSwitch.checked = false
-            errorOutput.innerText += "Browser not supported!\n"
-        } else {
-            dataSendInterval = window.setInterval(sendData, 1000 / 20)
-            contextInput.disabled = subjectInput.disabled = true
-        }
+        startRecordingTimeout = setTimeout(() => {
+            dataBuffer.clear()
+            if (!registerDeviceOrientationListener()) {
+                enableSwitch.checked = false
+                errorOutput.innerText += "Browser not supported!\n"
+            } else {
+                dataSendInterval = window.setInterval(sendData, 1000 / 10)
+                contextInput.disabled = subjectInput.disabled = true
+            }
+        }, 1500);
     }
 }
 
 function stopRecording() {
+    clearTimeout(startRecordingTimeout)
     removeDeviceOrientationListener();
     window.clearInterval(dataSendInterval)
     sendData()
@@ -90,13 +64,20 @@ function stopRecording() {
 
 function handleDeviceOrientation(event) {
     if (enableSwitch.checked === true) {
-        dataBuffer.add(event)
+        dataBuffer.addOrientationEvent(event)
+    }
+}
+
+function handleDeviceMotion(event) {
+    if (enableSwitch.checked === true) {
+        dataBuffer.addMotionEvent(event)
     }
 }
 
 function registerDeviceOrientationListener() {
-    if (window.DeviceOrientationEvent) {
+    if (window.DeviceOrientationEvent && window.DeviceMotionEvent) {
         window.addEventListener("deviceorientation", handleDeviceOrientation)
+        window.addEventListener("devicemotion", handleDeviceMotion)
         return true
     } else {
         return false
@@ -105,13 +86,14 @@ function registerDeviceOrientationListener() {
 
 function removeDeviceOrientationListener() {
     window.removeEventListener("deviceorientation", handleDeviceOrientation)
+    window.removeEventListener("devicemotion", handleDeviceMotion)
 }
 
 function sendData() {
     if (!dataBuffer.isEmpty()) {
         influx.writePoints([{
-            measurement: "orientation",
-            fields: dataBuffer.getMeanValues(),
+            measurement: "sensorData",
+            fields: dataBuffer.reduceValues(mean),
             tags: {
                 context: contextInput.value,
                 subject: subjectInput.value

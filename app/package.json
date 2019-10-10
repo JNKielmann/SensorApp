@@ -2,16 +2,17 @@
   "name": "SensorApp",
   "version": "1.0.0",
   "description": "",
-  "main": "script.js",
+  "main": "recording.js",
   "scripts": {
-    "dev": "parcel index.html",
-    "build": "parcel build index.html"
+    "dev": "parcel *.html",
+    "build": "parcel build *.html"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "influx": "^5.4.0"
+    "influx": "^5.4.0",
+    "mathjs": "^6.2.2"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.3"

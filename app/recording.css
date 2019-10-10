@@ -9,13 +9,16 @@ html, body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 
+.input-row {
+    margin-bottom: 2px;
+}
 .input-row div {
     width: 60px;
     display: inline-block;
 }
 
 .input-row input {
-    width: 400px;
+    max-width: 400px;
     height: 25px;
     font-size: 18px;
 }

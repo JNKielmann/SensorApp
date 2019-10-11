@@ -55,6 +55,7 @@ window.setInterval(() => {
             if(!vibrateInterval){
                 vibrateInterval = window.setInterval(() => {
                     window.navigator.vibrate(200);
+                    window.document.body.style.background = "red"
                 }, 2000)
             }
         }
@@ -68,6 +69,7 @@ window.setInterval(() => {
             if(vibrateInterval) clearInterval(vibrateInterval);
             vibrateInterval = null
             navigator.vibrate(0);
+            window.document.body.style.background = "white"
         }
         clock.innerText = "Timer: " + Math.floor(walkingTimer / 1000) + " seconds"
     } else {
@@ -89,4 +91,4 @@ if (window.DeviceOrientationEvent && window.DeviceMotionEvent) {
 } else {
     alert("Browser not supported")
 }
-window.setInterval(classifyContext, 1000)
+window.setInterval(classifyContext, 2000)

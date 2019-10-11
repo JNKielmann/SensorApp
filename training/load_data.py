@@ -46,7 +46,7 @@ def create_data_windows(timeseries_data, window_length):
     result = window_labels.join(window_features).dropna()
     # drop windows with too few samples
     result = result[result["count"] >= 15].drop(["count"], axis=1)
-    return result
+    return result.dropna()
 
 
 def split_X_y(data):
@@ -57,7 +57,7 @@ def split_X_y(data):
     """
     # convert strings to numbers
     y = data["context"].map(
-        {"Sitzen": 0, "Laufen": 1, "Fahrrad": 2}
+        {"Sitzen": 0, "Laufen": 1, "Fahrrad": 2, "Fahrrad ": 2}
     ).to_numpy()
     X = data.drop(["context", "subject"], axis=1).to_numpy()
     return X, y

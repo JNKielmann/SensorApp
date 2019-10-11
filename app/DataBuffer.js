@@ -1,7 +1,10 @@
 import {square, sqrt} from "mathjs"
 
+// Buffer that contains the last sensor values.
+// Provides a way to reduce them to a single value.
 export class DataBuffer {
     constructor() {
+        // Set initial values
         this.lastValues = {
             alpha: 0,
             beta: 0,
@@ -25,6 +28,7 @@ export class DataBuffer {
     }
 
     addOrientationEvent(event) {
+        // Add new orientation data
         this.lastValues = {
             ...this.lastValues,
             alpha: event.alpha,
@@ -35,6 +39,7 @@ export class DataBuffer {
     }
 
     addMotionEvent(event) {
+        // Add new acceleration data
         if (event.acceleration.x != null) {
             this.lastValues = {
                 ...this.lastValues,
@@ -61,6 +66,7 @@ export class DataBuffer {
     }
 
     reduceValues(reductionFunc) {
+        // Take reduction function an apply it so each series of sensor data
         let meanValues = {}
         for (let key of Object.keys(this.lastValues)) {
             meanValues[key] = reductionFunc(this.buffer.map(obj => obj[key]))
